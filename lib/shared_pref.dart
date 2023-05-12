@@ -7,6 +7,12 @@ class SetData {
     prefs ??= await SharedPreferences.getInstance();
   }
 
+  int? pageIndex;
+  ProviderData() {
+    pageIndex = 0;
+    loadFromPrefs();
+  }
+
   saveIndexToPrefs(int value) async {
     await initPrefs();
     prefs!.setInt(pageIndexKey, value);
@@ -15,5 +21,13 @@ class SetData {
   getIndexFromPrefs() async {
     await initPrefs();
     prefs!.get(pageIndexKey);
+  }
+
+  Future<int> loadFromPrefs() async {
+    await initPrefs();
+
+    pageIndex = prefs!.getInt(pageIndexKey) ?? 0;
+
+    return pageIndex!;
   }
 }
