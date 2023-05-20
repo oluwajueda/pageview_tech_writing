@@ -1,121 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:pageview_with_sharedpreferences/shared_pref.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() => runApp(MyPageView());
+
+class MyPageView extends StatefulWidget {
+  @override
+  _MyPageViewState createState() => _MyPageViewState();
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class _MyPageViewState extends State<MyPageView> {
+  late PageController pageVewController;
+  int currentIndex = 0;
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: SimplePageView(),
-    );
+  void initState() {
+    super.initState();
+    _loadIndex();
   }
-}
 
-class SimplePageView extends StatefulWidget {
-  const SimplePageView({super.key});
-
-  @override
-  State<SimplePageView> createState() => _SimplePageViewState();
-}
-
-class _SimplePageViewState extends State<SimplePageView> {
-  late PageController controller;
-
-  Future getIndex() {
-    return SetData().loadFromPrefs().then((value) {
-      controller = PageController(initialPage: value);
-      return controller;
+  _loadIndex() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int index = prefs.getInt('index') ?? 0;
+    setState(() {
+      pageVewController = PageController(initialPage: index);
+      currentIndex = index;
     });
   }
 
   @override
-  void dispose() {
-    super.dispose();
-    controller.dispose();
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Column(children: [
+          Expanded(
+            child: PageView(
+              controller: pageVewController,
+              children: <Widget>[
+                Container(height: 50, width: 50, color: Colors.red),
+                Container(height: 50, width: 50, color: Colors.green),
+                Container(height: 50, width: 50, color: Colors.blue),
+                Container(height: 50, width: 50, color: Colors.yellow),
+              ],
+              onPageChanged: (index) {
+                setState(() {
+                  currentIndex = index;
+                  _saveIndex(index);
+                });
+              },
+            ),
+          ),
+          Row(
+            children: [
+              InkWell(
+                onTap: (() {
+                  pageVewController.previousPage(
+                      duration: Duration(milliseconds: 500),
+                      curve: Curves.easeIn);
+                }),
+                child: Container(
+                  child: Text(
+                    "prev",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  ),
+                ),
+              ),
+              Spacer(),
+              InkWell(
+                onTap: (() {
+                  pageVewController.nextPage(
+                      curve: Curves.easeIn,
+                      duration: Duration(milliseconds: 500));
+                }),
+                child: Container(
+                  child: Text(
+                    "Next",
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          )
+        ]),
+      ),
+    );
+  }
+
+  _saveIndex(int index) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('index', index);
   }
 
   @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: Consumer<SetData>(
-          builder: (context, setData, _) {
-            return PageView(
-              controller: controller,
-              onPageChanged: (index) {
-                setData.changePageIndex(index);
-              },
-              children: [
-                Center(
-                    child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.red,
-                  child: const Center(
-                    child: Text(
-                      "1",
-                      style: TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                )),
-                Center(
-                    child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.yellow,
-                  child: const Center(
-                    child: Text(
-                      "2",
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                )),
-                Center(
-                    child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.blue,
-                  child: const Center(
-                    child: Text(
-                      "3",
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                )),
-                Center(
-                    child: Container(
-                  height: 300,
-                  width: 300,
-                  color: Colors.green,
-                  child: const Center(
-                    child: Text(
-                      "4",
-                      style:
-                          TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ))
-              ],
-            );
-          },
-        ),
-      ),
-    );
+  void dispose() {
+    pageVewController.dispose();
+    super.dispose();
   }
 }
