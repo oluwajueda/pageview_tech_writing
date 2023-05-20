@@ -32,6 +32,13 @@ class SimplePageView extends StatefulWidget {
 class _SimplePageViewState extends State<SimplePageView> {
   late PageController controller;
 
+  Future getIndex() {
+    return SetData().loadFromPrefs().then((value) {
+      controller = PageController(initialPage: value);
+      return controller;
+    });
+  }
+
   @override
   void dispose() {
     super.dispose();
