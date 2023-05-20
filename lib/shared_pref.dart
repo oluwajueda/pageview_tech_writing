@@ -1,6 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class SetData {
+class SetData extends ChangeNotifier {
   SharedPreferences? prefs;
   final String pageIndexKey = "pageIndex";
   initPrefs() async {
@@ -13,14 +14,14 @@ class SetData {
     loadFromPrefs();
   }
 
-  saveIndexToPrefs(int value) async {
+  saveIndexToPrefs({required int value}) async {
     await initPrefs();
     prefs!.setInt(pageIndexKey, value);
   }
 
   getIndexFromPrefs() async {
     await initPrefs();
-    prefs!.get(pageIndexKey);
+    prefs!.getInt(pageIndexKey);
   }
 
   Future<int> loadFromPrefs() async {
@@ -29,5 +30,13 @@ class SetData {
     pageIndex = prefs!.getInt(pageIndexKey) ?? 0;
 
     return pageIndex!;
+  }
+
+  void changePageIndex(int newPageIndex) {
+    pageIndex = newPageIndex;
+
+    saveIndexToPrefs(value: newPageIndex);
+
+    notifyListeners();
   }
 }
